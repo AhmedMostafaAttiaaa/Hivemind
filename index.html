@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hivemind — a universal swarm-agent service</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2330;
+    --border: #2a3340;
+    --text: #e6edf3;
+    --muted: #9aa7b4;
+    --accent: #4ade80;
+    --accent-2: #38bdf8;
+    --accent-3: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #16351f 0%, var(--bg) 55%);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px 80px; }
+  header { text-align: center; padding: 80px 20px 40px; }
+  .logo { font-size: 54px; }
+  h1 { font-size: 44px; margin: 10px 0 6px; letter-spacing: -1px; }
+  h1 .grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tagline { color: var(--muted); font-size: 20px; max-width: 640px; margin: 0 auto; }
+  .pills { margin-top: 22px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pill {
+    font-size: 13px; color: var(--muted);
+    border: 1px solid var(--border); background: var(--panel);
+    padding: 6px 12px; border-radius: 999px;
+  }
+  section { margin-top: 48px; }
+  h2 { font-size: 24px; margin: 0 0 14px; }
+  h2 .dot { color: var(--accent); }
+  p.lead { color: var(--muted); font-size: 17px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px 24px;
+  }
+  .flow { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .node {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; min-width: 150px; text-align: center;
+  }
+  .node .role { font-weight: 700; }
+  .node .desc { color: var(--muted); font-size: 13px; }
+  .node.triage { border-color: var(--accent); }
+  .arrow { align-self: center; color: var(--accent); font-size: 22px; }
+  .specialists { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .feat { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+  .feat .ico { font-size: 24px; }
+  .feat h3 { margin: 8px 0 6px; font-size: 17px; }
+  .feat p { margin: 0; color: var(--muted); font-size: 14px; }
+  code, .mono {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #0b1020; border: 1px solid var(--border);
+    padding: 2px 6px; border-radius: 6px; font-size: 13px; color: var(--accent-2);
+  }
+  pre {
+    background: #0b1020; border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; overflow-x: auto; font-size: 13.5px; color: var(--text);
+  }
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stack span { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+  footer { text-align: center; color: var(--muted); margin-top: 64px; font-size: 14px; }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">🐝</div>
+    <h1>Hive<span class="grad">mind</span></h1>
+    <p class="tagline">One agent template, every use case — coding, searching, and code review — with the internet on demand.</p>
+    <div class="pills">
+      <span class="pill">Multi-agent swarm</span>
+      <span class="pill">Live web search</span>
+      <span class="pill">FastAPI microservices</span>
+      <span class="pill">Ollama · Groq</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="dot">▍</span>The idea</h2>
+    <div class="card">
+      <p class="lead" style="margin-top:0">
+        Hivemind is a <strong>universal swarm-agent service</strong>. Every role — researcher, coder,
+        reviewer, generalist — is the <em>same</em> reusable agent (just <span class="mono">instructions + tools + handoffs</span>).
+        A <strong>triage</strong> agent reads each request and routes it to the right specialist, and any
+        agent can <strong>connect to the internet</strong> the moment a task needs fresh information.
+        It's all exposed as clean, microservice-style <strong>FastAPI</strong> endpoints.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot">▍</span>How it works</h2>
+    <div class="card">
+      <div class="flow">
+        <div class="node triage">
+          <div class="role">🧭 triage</div>
+          <div class="desc">classifies &amp; routes</div>
+        </div>
+        <div class="arrow">→</div>
+        <div style="flex:1; min-width:260px;">
+          <div class="specialists">
+            <div class="node"><div class="role">🔎 researcher</div><div class="desc">searches the web, cites sources</div></div>
+            <div class="node"><div class="role">💻 coder</div><div class="desc">writes &amp; fixes code</div></div>
+            <div class="node"><div class="role">🔍 reviewer</div><div class="desc">reviews code, asks first</div></div>
+            <div class="node"><div class="role">💬 generalist</div><div class="desc">everything else</div></div>
+          </div>
+        </div>
+      </div>
+      <p style="color:var(--muted); font-size:14px; margin-bottom:0;">
+        Agents cooperate through <strong>handoffs</strong>: one request can flow
+        <span class="mono">triage → coder → reviewer</span>, each building on the last. When the task looks
+        like it needs the web ("search…", "latest…", a URL), the search tools switch on automatically.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot">▍</span>What it can do</h2>
+    <div class="grid">
+      <div class="feat">
+        <div class="ico">💬</div>
+        <h3>Chat that searches</h3>
+        <p>Talk to it normally; when a question needs current facts, it goes online by itself and shows a live "Searching the web…" loader.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">🌐</div>
+        <h3>Key-free web access</h3>
+        <p>Searches via a self-hosted SearXNG (Docker) with a DuckDuckGo fallback — then reads the pages and synthesizes an answer.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">🧩</div>
+        <h3>Pluggable models</h3>
+        <p>Ollama for fully local, or Groq for fast cloud — behind one interface, switchable per request.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">🔍</div>
+        <h3>Smart code review</h3>
+        <p>Point it at a file; the reviewer asks clarifying questions first, then reviews with your answers in mind.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">📡</div>
+        <h3>Streaming events</h3>
+        <p>A Server-Sent-Events endpoint streams every step (routing, tool calls) — ready to power a live UI.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">🧠</div>
+        <h3>Conversation memory</h3>
+        <p>Sessions keep context across messages, so follow-ups just work.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot">▍</span>Try it</h2>
+    <div class="card">
+<pre>curl -X POST http://127.0.0.1:8000/swarm/run \
+  -H "Content-Type: application/json" \
+  -d '{"task": "search the web for the latest Python version"}'</pre>
+      <p style="color:var(--muted); font-size:14px; margin-bottom:0;">
+        The triage agent routes it to the researcher, which searches, reads a page, and answers with sources.
+        Or just chat: <span class="mono">python chat.py</span>.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="dot">▍</span>Built with</h2>
+    <div class="stack">
+      <span>Python</span><span>FastAPI</span><span>httpx</span><span>Ollama</span>
+      <span>Groq</span><span>SearXNG</span><span>Server-Sent Events</span><span>Docker</span>
+    </div>
+  </section>
+
+  <footer>
+    Hivemind · built by <strong>Ahmed Attia</strong> ·
+    <a href="https://github.com/AhmedMostafaAttiaaa/Hivemind">github.com/AhmedMostafaAttiaaa/Hivemind</a>
+  </footer>
+
+</div>
+</body>
+</html>
