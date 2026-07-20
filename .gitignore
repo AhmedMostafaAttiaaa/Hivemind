@@ -5,8 +5,8 @@
 COMMANDS.md
 secu.md
 
-# Claude local overrides (keep shared .claude/settings.json, ignore personal)
-.claude/settings.local.json
+# Claude Code config (local only, never pushed)
+.claude/
 
 # Python
 __pycache__/
@@ -28,4 +28,3 @@ env/
 Thumbs.db
 .idea/
 .vscode/
-.claude
