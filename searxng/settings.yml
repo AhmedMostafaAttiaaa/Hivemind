@@ -1,0 +1,25 @@
+# Minimal SearXNG config for Hivemind.
+# The key line is `search.formats` — the JSON format must be enabled because
+# Hivemind's web_search tool calls SearXNG with `?format=json`. The stock image
+# ships with JSON disabled, which would make our search return HTML we can't parse.
+use_default_settings: true
+
+server:
+  # Overridden by the SEARXNG_SECRET env var in docker-compose; change for production.
+  secret_key: "please-change-this-dev-secret"
+  limiter: false
+  image_proxy: true
+
+search:
+  safe_search: 0
+  formats:
+    - html
+    - json
+
+engines:
+  - name: duckduckgo
+    disabled: false
+  - name: google
+    disabled: false
+  - name: bing
+    disabled: false

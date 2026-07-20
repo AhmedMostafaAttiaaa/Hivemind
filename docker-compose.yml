@@ -1,0 +1,15 @@
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: hivemind-searxng
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8080/
+      # SearXNG needs a random secret; override in .env or here for production.
+      - SEARXNG_SECRET=${SEARXNG_SECRET:-please-change-this-dev-secret}
+    restart: unless-stopped
+    # After `docker compose up -d`, set SEARXNG_URL=http://localhost:8080 in .env
+    # so Hivemind's web_search prefers SearXNG over the DuckDuckGo fallback.

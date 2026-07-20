@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.api.routers import agents, swarm, web
 from app.core.config import get_settings
+from app.llm import resolve_provider
 
 app = FastAPI(
     title="Swarm Search",
@@ -21,8 +22,9 @@ app.include_router(web.router)
 @app.get("/health", tags=["health"])
 async def health() -> dict:
     settings = get_settings()
+    provider = resolve_provider(settings.llm_provider)
     return {
         "status": "ok",
-        "provider": settings.llm_provider,
-        "model": settings.groq_model if settings.llm_provider == "groq" else settings.ollama_model,
+        "provider": provider,
+        "model": settings.groq_model if provider == "groq" else settings.ollama_model,
     }
