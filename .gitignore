@@ -1,1 +1,29 @@
+# Secrets & local-only files (never commit)
 .env
+.env.*
+!.env.example
+COMMANDS.md
+
+# Claude local overrides (keep shared .claude/settings.json, ignore personal)
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# Virtual envs (conda env `hivemind` lives outside the repo, but ignore any local venvs)
+.venv/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
