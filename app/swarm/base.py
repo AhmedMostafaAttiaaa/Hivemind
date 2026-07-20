@@ -1,4 +1,5 @@
 import json
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -7,6 +8,15 @@ from app.llm import get_llm
 from app.tools.base import Tool
 
 HANDOFF_PREFIX = "handoff_to_"
+
+# Optional async callback used to stream progress events (agent start, handoff,
+# tool start/end) to a live client. None = no streaming.
+Emitter = Callable[[dict[str, Any]], Awaitable[None]]
+
+
+async def _emit(emit: Emitter | None, event: dict[str, Any]) -> None:
+    if emit is not None:
+        await emit(event)
 
 
 @dataclass
@@ -69,6 +79,7 @@ class Agent:
         registry: dict[str, "Agent"] | None = None,
         extra_tools: list[Tool] | None = None,
         provider: str | None = None,
+        emit: Emitter | None = None,
     ) -> AgentOutput:
         settings = get_settings()
         registry = registry or {}
@@ -113,6 +124,8 @@ class Agent:
                     )
 
                 tool = tool_map.get(tc.name)
+                await _emit(emit, {"type": "tool", "phase": "start", "agent": self.name,
+                                   "tool": tc.name, "arguments": tc.arguments})
                 if tool:
                     try:
                         result = await tool.func(**tc.arguments)
@@ -120,6 +133,7 @@ class Agent:
                         result = f"Tool {tc.name} failed: {e}"
                 else:
                     result = f"Unknown tool: {tc.name}"
+                await _emit(emit, {"type": "tool", "phase": "end", "agent": self.name, "tool": tc.name})
 
                 events.append(
                     ToolEvent(agent=self.name, tool=tc.name, arguments=tc.arguments, result_preview=result[:300])
