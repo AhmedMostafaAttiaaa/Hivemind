@@ -4,6 +4,7 @@ from typing import Any
 
 import httpx
 
+from app.core.config import get_settings
 from app.core.http import async_client
 from app.llm.base import BaseLLM, LLMResponse, ToolCall
 
@@ -38,6 +39,7 @@ class OllamaLLM(BaseLLM):
             "messages": messages,
             "stream": False,
             "think": False,  # suppress reasoning traces on models like qwen3 (ignored by others)
+            "options": {"temperature": get_settings().llm_temperature},
         }
         if tools:
             payload["tools"] = tools

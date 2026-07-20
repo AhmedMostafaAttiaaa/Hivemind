@@ -42,3 +42,16 @@ class ReviewRequest(BaseModel):
     context: str = Field("", description="Optional context: language, what the code should do, concerns")
     use_web: bool | None = None
     provider: str | None = None
+
+
+class ReviewFileRequest(BaseModel):
+    file_path: str = Field(..., min_length=1, description="Absolute or relative path to the file to review")
+    context: str = Field("", description="Optional context about the code")
+    answers: str = Field("", description="Answers to the reviewer's clarifying questions (from the /questions step)")
+    provider: str | None = None
+
+
+class ReviewQuestionsResponse(BaseModel):
+    file_path: str
+    questions: str = Field(..., description="Clarifying questions the reviewer wants answered before reviewing")
+    lines: int

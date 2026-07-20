@@ -3,6 +3,7 @@ import re
 import uuid
 from typing import Any
 
+from app.core.config import get_settings
 from app.core.http import async_client
 from app.llm.base import BaseLLM, LLMResponse, ToolCall
 
@@ -37,9 +38,11 @@ class GroqLLM(BaseLLM):
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]] | None = None,
     ) -> LLMResponse:
-        # temperature=0 sharply reduces Llama-on-Groq emitting malformed tool calls
-        # (the <function=...> format that triggers `tool_use_failed`).
-        payload: dict[str, Any] = {"model": self.model, "messages": messages, "temperature": 0}
+        # Low temperature keeps answers on-persona and sharply reduces Llama-on-Groq
+        # emitting malformed tool calls (the <function=...> format that triggers
+        # `tool_use_failed`). Configurable via LLM_TEMPERATURE.
+        temperature = get_settings().llm_temperature
+        payload: dict[str, Any] = {"model": self.model, "messages": messages, "temperature": temperature}
         if tools:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"

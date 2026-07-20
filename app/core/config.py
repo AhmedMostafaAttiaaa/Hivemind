@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
 
+    # Sampling temperature (0 = most deterministic). Kept low for consistent,
+    # on-persona answers and reliable tool calling.
+    llm_temperature: float = 0.2
+
     searxng_url: str = ""
 
     max_tool_iterations: int = 6
