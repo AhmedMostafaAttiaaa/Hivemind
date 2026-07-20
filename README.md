@@ -1,4 +1,4 @@
-# 🐝 Hivemind
+#  Hivemind
 
 A universal **swarm-agent service** that merges the ideas of
 [`swarmx-framework`](https://github.com/AhmedMostafaAttiaaa/swarmx-framework)
@@ -6,7 +6,7 @@ A universal **swarm-agent service** that merges the ideas of
 [`local-web-search-agent`](https://github.com/AhmedMostafaAttiaaa/-local-web-search-agent)
 (key-free live internet search), exposed as **microservice-style FastAPI routers**.
 
-📄 **[View the project overview page →](https://ahmedmostafaattiaaa.github.io/Hivemind/)**
+ **[View the project overview page →](https://ahmedmostafaattiaaa.github.io/Hivemind/)**
 &nbsp;(the styled `index.html`, served via GitHub Pages)
 
 ## The idea
