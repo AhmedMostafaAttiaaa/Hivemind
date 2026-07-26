@@ -26,6 +26,8 @@ A universal **swarm-agent service** that merges the ideas of
   temperature for steady, on-persona replies.
 - **Provider-agnostic.** Ollama (local) or Groq (fast cloud) behind one `BaseLLM` interface;
   switch globally via `.env` or per-request with `"provider": "groq"`.
+- **MCP tools.** Connect external **MCP servers** (Model Context Protocol) in `mcp.json`; their
+  tools are auto-discovered and made available to the agents, right next to the built-in ones.
 
 ## Quick start
 
@@ -60,6 +62,30 @@ docker compose up -d                      # SearXNG on http://localhost:8080 (JS
 ```
 With `SEARXNG_URL` set, `web_search` prefers SearXNG and falls back to DuckDuckGo scraping.
 
+## MCP tools (plug in external capabilities)
+
+Hivemind is an **MCP client**: point it at any MCP servers and their tools become callable by
+the agents. Copy the example config and edit it:
+
+```bash
+copy mcp.json.example mcp.json     # Claude-desktop format: { "mcpServers": { ... } }
+```
+```json
+{ "mcpServers": { "demo": { "command": "python", "args": ["examples/mcp_demo_server.py"] } } }
+```
+
+On server startup, Hivemind connects to each server, discovers its tools, and namespaces them as
+`server__tool`. Check what's connected:
+
+```bash
+curl http://127.0.0.1:8000/mcp/servers     # connected servers + any errors
+curl http://127.0.0.1:8000/mcp/tools       # tools exposed to the agents
+```
+
+Agents use MCP tools automatically when servers are connected; force it per request with
+`"use_mcp": true` (or `false` to hide them). A tiny demo server (`examples/mcp_demo_server.py`,
+tools `add` + `current_time`) is included so you can try it with no extra installs.
+
 ## API (the "microservices")
 
 | Endpoint | What it does |
@@ -75,6 +101,7 @@ With `SEARXNG_URL` set, `web_search` prefers SearXNG and falls back to DuckDuckG
 | `POST /agents/{name}/run` | Run any registered agent directly |
 | `GET /swarm/agents` | List registered agents |
 | `POST /web/search`, `POST /web/fetch` | Raw search/fetch, no LLM |
+| `GET /mcp/servers`, `GET /mcp/tools` | Connected MCP servers and the tools they expose |
 | `GET /health` | Provider + model status |
 
 ### Examples
@@ -108,9 +135,11 @@ app/
 ├── agents/               # role definitions + shared "Ahmed Attia's assistant" persona
 ├── llm/                  # BaseLLM + Ollama and Groq adapters (configurable temperature)
 ├── tools/                # web_search (SearXNG/DuckDuckGo) + fetch_page
+├── mcp/                  # MCP client: connect external MCP servers, expose their tools
 └── core/                 # settings (.env), shared http client, file reader
 chat.py                   # interactive chat client with the live search loader
 docker-compose.yml        # SearXNG service
+examples/mcp_demo_server.py  # tiny demo MCP server (add + current_time)
 index.html                # project overview page (GitHub Pages)
 ```
 
@@ -123,6 +152,7 @@ index.html                # project overview page (GitHub Pages)
    →`tester`); the engine follows the chain up to `MAX_HANDOFFS`.
 3. **New tool**: create a `Tool` in `app/tools/` and attach it to any agent's `tools` list.
 4. **New provider**: implement `BaseLLM.chat()` in `app/llm/` and register it in `get_llm()`.
+5. **New MCP server**: add it to `mcp.json`; its tools are auto-discovered on startup — no code.
 
 ---
 Built by **Ahmed Attia**.

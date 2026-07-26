@@ -151,6 +151,9 @@ app/
 │   ├── base.py                 # Tool dataclass (name, description, params, func)
 │   ├── web_search.py           # SearXNG → DuckDuckGo fallback
 │   └── fetch_page.py           # URL → readable text
+├── mcp/
+│   ├── client.py               # minimal MCP stdio JSON-RPC client
+│   └── manager.py              # loads mcp.json, wraps MCP server tools as Hivemind Tools
 └── core/
     ├── config.py               # Settings from .env (pydantic-settings)
     ├── http.py                 # async httpx client honoring SSL_VERIFY
@@ -174,6 +177,7 @@ requirements.txt / .env.example
 | `GROQ_API_KEY` / `GROQ_MODEL` | — / `llama-3.3-70b-versatile` | Cloud model settings. |
 | `LLM_TEMPERATURE` | `0.2` | Sampling temperature (low = steady, reliable tool calls). |
 | `SEARXNG_URL` | empty | If set (e.g. `http://localhost:8080`), search uses SearXNG first. |
+| `MCP_CONFIG` | `mcp.json` | Path to the MCP server config; connected servers' tools go to the agents. |
 | `MAX_TOOL_ITERATIONS` | `6` | Max tool calls per agent before forcing a final answer. |
 | `MAX_HANDOFFS` | `4` | Max agent handoffs per request (prevents loops). |
 | `SSL_VERIFY` | `true` | Set `false` only behind a TLS-intercepting corporate proxy. |
@@ -254,9 +258,12 @@ step: point them at changed files in a pull request, capture the review as a com
 reviewer asks clarifying questions first, you can pre-seed answers (target runtime, standards) in
 the `answers` field for consistent automated reviews.
 
-**F. As a tool for *other* AI agents (MCP / function-calling).**
-Expose `swarm/run` as a single callable tool to another LLM/agent framework (e.g. wrap it as an
-MCP server or an OpenAI/Anthropic function). Then a higher-level agent can delegate whole
+**F. MCP — both directions.**
+*Consuming* MCP is **built in**: Hivemind is an MCP client, so you can plug any MCP server into
+`mcp.json` and its tools become available to the agents (discovered on startup, namespaced
+`server__tool`, injected via the same path as the web tools). See "MCP client — how it works" below.
+*Exposing* Hivemind is the reverse and still a future add: wrap `swarm/run` as a single callable
+tool (an MCP server or an OpenAI/Anthropic function) so a higher-level agent can delegate whole
 sub-tasks — "research X", "review this file" — to Hivemind as one action.
 
 **G. Scaling for production.**
@@ -266,6 +273,27 @@ sub-tasks — "research X", "review this file" — to Hivemind as one action.
 - Run SearXNG and the API as separate Docker services; add more provider adapters
   (OpenAI, Anthropic, Gemini) behind `BaseLLM`.
 - Add observability (the SSE events are already a natural hook for metrics/tracing).
+
+### MCP client — how it works
+
+**MCP (Model Context Protocol)** is a standard way for AI apps to plug in external tools. Hivemind
+speaks it as a **client**:
+
+1. **Config** — `mcp.json` (Claude-desktop format) lists servers to launch:
+   `{ "mcpServers": { "demo": { "command": "python", "args": ["examples/mcp_demo_server.py"] } } }`
+2. **Connect** — on server startup (`lifespan`), `MCPManager` spawns each MCP server as a
+   subprocess and does the JSON-RPC `initialize` handshake over stdin/stdout
+   (`app/mcp/client.py`, no external SDK).
+3. **Discover** — it calls `tools/list`, and wraps each returned tool as a Hivemind `Tool` named
+   `server__tool`, whose `func` calls the MCP server's `tools/call`.
+4. **Use** — those tools are injected into the agents exactly like the web tools (via
+   `extra_tools`), so an agent can call an MCP tool the same way it calls `web_search`. Toggle per
+   request with `use_mcp`; inspect with `GET /mcp/servers` and `GET /mcp/tools`.
+5. **Shutdown** — the subprocesses are terminated on app shutdown.
+
+A demo server (`examples/mcp_demo_server.py`) with `add` and `current_time` is included so you can
+try MCP with zero installs. Because each MCP tool is just another `Tool`, adding real MCP servers
+(filesystem, GitHub, databases, …) needs **no Hivemind code** — only an `mcp.json` entry.
 
 ---
 
