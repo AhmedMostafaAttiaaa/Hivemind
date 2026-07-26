@@ -281,7 +281,73 @@ sub-tasks — "research X", "review this file" — to Hivemind as one action.
 
 ---
 
-## 11. TL;DR
+## 11. Running & operating it (beginner-friendly)
+
+If you're new to servers and APIs, this section is the practical "how to actually run it" guide.
+
+### The mental model: two programs
+- **The server** = a program that starts, then **waits and listens** for requests. Here it's
+  `uvicorn` running the FastAPI app. When you see `Uvicorn running on http://127.0.0.1:8000`, it's
+  up and idle — that's normal, it's waiting.
+- **The client** = a program that **asks** the server for things: `chat.py`, your browser, or `curl`.
+- They are **separate programs, usually in two terminals**, running **at the same time**. The client
+  only works while the server is running.
+
+> Analogy: the server is someone who **picks up the phone**; the client **dials**. Dialing with
+> nobody to answer = "the line is dead."
+
+### Key terms
+- **`127.0.0.1` / `localhost`** — "this same computer."
+- **Port (`8000`)** — like an apartment number at that address. Only one program can use a port at
+  a time.
+- **API** — the menu of things you can ask the server to do (its list of URL *endpoints*).
+- **Endpoint** — one item on that menu, e.g. `POST /swarm/run`.
+- **HTTP method** — `GET` = "give me something" (read-only); `POST` = "here's data, do something."
+- **JSON** — the text format used to send/receive data, e.g. `{"task": "hi"}`.
+- **Status codes** — `200` OK, `404` "not on the menu", `5xx` "server broke."
+
+### Start it (two terminals)
+**Terminal 1 — the server (leave it open):**
+```bash
+conda activate hivemind
+cd path/to/swarm-search
+python -m uvicorn app.main:app --port 8000
+```
+**Terminal 2 — a client:**
+```bash
+conda activate hivemind
+cd path/to/swarm-search
+python chat.py
+```
+
+### Check whether the server is running
+```bash
+curl http://127.0.0.1:8000/health
+```
+- Answers with JSON → server is **up**.
+- "connection refused" → server is **down**.
+
+### The two common errors, decoded
+- **`10061` connection refused** → nothing is listening → **start the server** (Terminal 1).
+- **`10048` address already in use** → a server is **already** on that port → don't start another;
+  just run the client, or use a different port (`--port 8001`).
+
+### Choosing the model provider
+The provider comes from **`LLM_PROVIDER` in `.env`**, read **when the server starts**:
+- Permanent: set `LLM_PROVIDER=groq` in `.env`, then **restart the server**. Confirm with `/health`.
+- Per session, no restart: `python chat.py --provider groq` (overrides on every message).
+- Groq = fast cloud (needs `GROQ_API_KEY`); Ollama = local (slow on CPU).
+
+### Stop a server
+- In the server's terminal: **Ctrl+C**.
+- Background / can't see it (Windows, Git Bash):
+  ```bash
+  netstat -ano | grep 'LISTENING' | grep ':8000 ' | awk '{print $5}' | sort -u | xargs -r -I{} taskkill //F //PID {}
+  ```
+
+---
+
+## 12. TL;DR
 
 Hivemind is one reusable agent template, a small routing engine, and pluggable tools/providers,
 wrapped in a FastAPI service. It chats, codes, researches (with real web access and a live
