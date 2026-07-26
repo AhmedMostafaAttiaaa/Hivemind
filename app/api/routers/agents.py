@@ -22,6 +22,7 @@ async def _run_direct(agent_name: str, req: TaskRequest) -> TaskResponse:
             use_web=req.use_web,
             session_id=req.session_id,
             provider=req.provider,
+            use_mcp=req.use_mcp,
         )
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))

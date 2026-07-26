@@ -11,6 +11,11 @@ class TaskRequest(BaseModel):
     )
     session_id: str | None = Field(None, description="Reuse an id to keep conversation history")
     provider: str | None = Field(None, description="Override LLM provider for this request: 'ollama' or 'groq'")
+    use_mcp: bool | None = Field(
+        None,
+        description="true = expose connected MCP-server tools to the agents, false = hide them, "
+        "null = auto (available whenever MCP servers are connected)",
+    )
 
 
 class ToolEventOut(BaseModel):

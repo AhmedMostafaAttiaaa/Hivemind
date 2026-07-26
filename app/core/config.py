@@ -20,6 +20,10 @@ class Settings(BaseSettings):
 
     searxng_url: str = ""
 
+    # Path to an MCP server config file (Claude-desktop `mcp.json` format).
+    # Connected MCP servers' tools become available to the agents.
+    mcp_config: str = "mcp.json"
+
     max_tool_iterations: int = 6
     max_handoffs: int = 4
 

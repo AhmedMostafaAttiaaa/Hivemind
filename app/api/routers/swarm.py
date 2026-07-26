@@ -29,7 +29,8 @@ async def run_swarm(req: TaskRequest) -> TaskResponse:
     """Any task: the triage agent routes it to the right specialist automatically."""
     try:
         result = await engine.run(
-            req.task, use_web=req.use_web, session_id=req.session_id, provider=req.provider
+            req.task, use_web=req.use_web, session_id=req.session_id,
+            provider=req.provider, use_mcp=req.use_mcp,
         )
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))
@@ -63,6 +64,7 @@ async def stream_swarm(req: TaskRequest) -> StreamingResponse:
                 use_web=req.use_web,
                 session_id=req.session_id,
                 provider=req.provider,
+                use_mcp=req.use_mcp,
                 emit=emit,
             )
             await queue.put({"type": "final", **to_response(result).model_dump()})

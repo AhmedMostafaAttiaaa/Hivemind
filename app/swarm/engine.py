@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass, field
 
 from app.core.config import get_settings
+from app.mcp import mcp_manager
 from app.swarm.base import Agent, AgentOutput, Emitter, ToolEvent, _emit
 from app.swarm.memory import memory
 from app.tools import WEB_TOOLS
@@ -43,14 +44,21 @@ class SwarmEngine:
         use_web: bool | None = None,
         session_id: str | None = None,
         provider: str | None = None,
+        use_mcp: bool | None = None,
         emit: Emitter | None = None,
     ) -> SwarmResult:
         settings = get_settings()
 
         # Web tools: explicit flag wins; otherwise auto-detect from the task
         web_enabled = wants_web(task) if use_web is None else use_web
-        extra_tools = WEB_TOOLS if web_enabled else []
+        extra_tools = list(WEB_TOOLS) if web_enabled else []
         await _emit(emit, {"type": "web_enabled", "value": web_enabled})
+
+        # MCP tools: explicit flag wins; otherwise available whenever servers are connected
+        mcp_enabled = bool(mcp_manager.tools) if use_mcp is None else use_mcp
+        if mcp_enabled and mcp_manager.tools:
+            extra_tools += mcp_manager.tools
+        await _emit(emit, {"type": "mcp_enabled", "value": mcp_enabled and bool(mcp_manager.tools)})
 
         history = memory.get(session_id) if session_id else []
         messages = [*history, {"role": "user", "content": task}]

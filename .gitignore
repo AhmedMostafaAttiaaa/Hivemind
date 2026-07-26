@@ -8,6 +8,9 @@ secu.md
 # Claude Code config (local only, never pushed)
 .claude/
 
+# Local MCP server config (may hold machine paths / secrets); example is committed
+mcp.json
+
 # Python
 __pycache__/
 *.py[cod]
