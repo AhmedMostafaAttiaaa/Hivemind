@@ -82,6 +82,46 @@ curl http://127.0.0.1:8000/mcp/servers     # connected servers + any errors
 curl http://127.0.0.1:8000/mcp/tools       # tools exposed to the agents
 ```
 
+Agents use MCP tools automatically once servers are connected; force it per request with
+`"use_mcp": true` (or `false` to hide them), e.g.:
+
+```bash
+curl -X POST http://127.0.0.1:8000/swarm/run -H "Content-Type: application/json" \
+  -d '{"task": "use the demo add tool to add 17 and 25", "use_mcp": true}'
+```
+
+### Adding real MCP servers
+
+Any stdio MCP server works — just add it to `mcp.json` (restart the server after editing).
+A couple of popular ones to try (each needs `npx`/Node installed):
+
+```json
+{
+  "mcpServers": {
+    "demo": { "command": "python", "args": ["examples/mcp_demo_server.py"] },
+
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:/path/to/allowed/folder"]
+    },
+
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_..." }
+    }
+  }
+}
+```
+
+- **filesystem** — gives agents read/write access to a specific local folder (list/read/edit files).
+- **github** — lets agents search repos, read files, open issues/PRs (needs a token with the
+  scopes you want to allow).
+
+One bad/unreachable server never blocks startup — check `GET /mcp/servers` for a per-server
+`errors` map if a tool doesn't show up. Keep secrets (like `GITHUB_PERSONAL_ACCESS_TOKEN`) only in
+your local `mcp.json`, which is gitignored — never in `mcp.json.example`.
+
 Agents use MCP tools automatically when servers are connected; force it per request with
 `"use_mcp": true` (or `false` to hide them). A tiny demo server (`examples/mcp_demo_server.py`,
 tools `add` + `current_time`) is included so you can try it with no extra installs.
