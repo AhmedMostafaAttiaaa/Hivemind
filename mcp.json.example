@@ -3,6 +3,10 @@
     "demo": {
       "command": "python",
       "args": ["examples/mcp_demo_server.py"]
+    },
+    "notes": {
+      "command": "python",
+      "args": ["examples/mcp_notes_server.py"]
     }
   }
 }
