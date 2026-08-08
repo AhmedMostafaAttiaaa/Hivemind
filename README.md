@@ -9,6 +9,9 @@ A universal **swarm-agent service** that merges the ideas of
  **[View the project overview page →](https://ahmedmostafaattiaaa.github.io/Hivemind/)**
 &nbsp;(the styled `index.html`, served via GitHub Pages)
 
+📄 **[Read the full project documentation →](DOCS.md)** — tech stack and *why* each piece was
+chosen, design decisions, and how to reuse Hivemind in other projects.
+
 ## The idea
 
 - **One agent template, every use case.** An `Agent` is just `instructions + tools + handoffs`.
