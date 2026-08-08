@@ -28,6 +28,8 @@ A universal **swarm-agent service** that merges the ideas of
   switch globally via `.env` or per-request with `"provider": "groq"`.
 - **MCP tools.** Connect external **MCP servers** (Model Context Protocol) in `mcp.json`; their
   tools are auto-discovered and made available to the agents, right next to the built-in ones.
+- **Small built-in utilities.** Every agent always has a `calculator` (safe arithmetic, no
+  `eval()`) and `get_current_datetime` (real date/time, any IANA timezone) — no setup needed.
 
 ## Quick start
 
@@ -89,6 +91,17 @@ Agents use MCP tools automatically once servers are connected; force it per requ
 curl -X POST http://127.0.0.1:8000/swarm/run -H "Content-Type: application/json" \
   -d '{"task": "use the demo add tool to add 17 and 25", "use_mcp": true}'
 ```
+
+### Included example MCP servers (Python, stdlib only, zero installs)
+
+`mcp.json.example` wires up three tiny servers under `examples/` so you can see MCP working
+immediately:
+
+| Server | Tools | What it does |
+|---|---|---|
+| `demo` | `add`, `current_time` | Minimal reference server |
+| `notes` | `write_note`, `list_notes` | File-backed scratchpad the agents can save/recall notes in |
+| `sysinfo` | `get_system_info` | Reports OS, Python version, CPU count of the host machine |
 
 ### Adding real MCP servers
 
@@ -174,12 +187,12 @@ app/
 ├── swarm/                # engine: Agent template, handoffs, SwarmEngine, session memory, SSE events
 ├── agents/               # role definitions + shared "Ahmed Attia's assistant" persona
 ├── llm/                  # BaseLLM + Ollama and Groq adapters (configurable temperature)
-├── tools/                # web_search (SearXNG/DuckDuckGo) + fetch_page
+├── tools/                # web_search (SearXNG/DuckDuckGo) + fetch_page + calculator + datetime
 ├── mcp/                  # MCP client: connect external MCP servers, expose their tools
 └── core/                 # settings (.env), shared http client, file reader
 chat.py                   # interactive chat client with the live search loader
 docker-compose.yml        # SearXNG service
-examples/mcp_demo_server.py  # tiny demo MCP server (add + current_time)
+examples/                 # example MCP servers: demo, notes, sysinfo (see MCP section above)
 index.html                # project overview page (GitHub Pages)
 ```
 
