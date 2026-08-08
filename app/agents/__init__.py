@@ -5,6 +5,7 @@ nothing in the engine changes.
 """
 
 from app.swarm.base import Agent
+from app.tools import UTILITY_TOOLS
 
 # Shared persona prepended to every agent's system prompt. This is what makes the
 # whole swarm speak as Ahmed Attia's assistant regardless of which specialist answers.
@@ -70,8 +71,11 @@ generalist = Agent(
     ),
 )
 
-# Prepend the shared identity to every agent so the persona is consistent swarm-wide.
+# Prepend the shared identity, and give every agent the small always-on utility
+# tools (e.g. calculator), so the persona and baseline capabilities are consistent
+# swarm-wide regardless of which specialist ends up answering.
 for _agent in (triage, researcher, coder, reviewer, generalist):
     _agent.instructions = f"{IDENTITY}\n\n{_agent.instructions}"
+    _agent.tools = list(_agent.tools) + UTILITY_TOOLS
 
 REGISTRY: dict[str, Agent] = {a.name: a for a in [triage, researcher, coder, reviewer, generalist]}
