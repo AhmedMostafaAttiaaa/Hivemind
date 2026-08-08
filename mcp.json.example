@@ -7,6 +7,10 @@
     "notes": {
       "command": "python",
       "args": ["examples/mcp_notes_server.py"]
+    },
+    "sysinfo": {
+      "command": "python",
+      "args": ["examples/mcp_sysinfo_server.py"]
     }
   }
 }
