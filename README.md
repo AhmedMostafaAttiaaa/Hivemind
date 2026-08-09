@@ -31,8 +31,9 @@ chosen, design decisions, and how to reuse Hivemind in other projects.
   switch globally via `.env` or per-request with `"provider": "groq"`.
 - **MCP tools.** Connect external **MCP servers** (Model Context Protocol) in `mcp.json`; their
   tools are auto-discovered and made available to the agents, right next to the built-in ones.
-- **Small built-in utilities.** Every agent always has a `calculator` (safe arithmetic, no
-  `eval()`) and `get_current_datetime` (real date/time, any IANA timezone) — no setup needed.
+- **Small built-in utilities.** Every agent always has `calculator` (safe arithmetic, no `eval()`),
+  `get_current_datetime` (real date/time, any IANA timezone), `text_stats` (word/char/line/sentence
+  counts), and `generate_uuid` — no setup needed.
 
 ## Quick start
 
@@ -97,7 +98,7 @@ curl -X POST http://127.0.0.1:8000/swarm/run -H "Content-Type: application/json"
 
 ### Included example MCP servers (Python, stdlib only, zero installs)
 
-`mcp.json.example` wires up three tiny servers under `examples/` so you can see MCP working
+`mcp.json.example` wires up five tiny servers under `examples/` so you can see MCP working
 immediately:
 
 | Server | Tools | What it does |
@@ -105,6 +106,8 @@ immediately:
 | `demo` | `add`, `current_time` | Minimal reference server |
 | `notes` | `write_note`, `list_notes` | File-backed scratchpad the agents can save/recall notes in |
 | `sysinfo` | `get_system_info` | Reports OS, Python version, CPU count of the host machine |
+| `random` | `roll_dice`, `coin_flip`, `random_number` | Real randomness for games/decisions/sampling |
+| `units` | `convert_units` | Length, weight, volume, and temperature conversion |
 
 ### Adding real MCP servers
 
@@ -190,12 +193,12 @@ app/
 ├── swarm/                # engine: Agent template, handoffs, SwarmEngine, session memory, SSE events
 ├── agents/               # role definitions + shared "Ahmed Attia's assistant" persona
 ├── llm/                  # BaseLLM + Ollama and Groq adapters (configurable temperature)
-├── tools/                # web_search (SearXNG/DuckDuckGo) + fetch_page + calculator + datetime
+├── tools/                # web_search, fetch_page, calculator, datetime, text_stats, uuid
 ├── mcp/                  # MCP client: connect external MCP servers, expose their tools
 └── core/                 # settings (.env), shared http client, file reader
 chat.py                   # interactive chat client with the live search loader
 docker-compose.yml        # SearXNG service
-examples/                 # example MCP servers: demo, notes, sysinfo (see MCP section above)
+examples/                 # example MCP servers: demo, notes, sysinfo, random, units (see MCP section above)
 index.html                # project overview page (GitHub Pages)
 ```
 

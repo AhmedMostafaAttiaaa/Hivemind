@@ -11,6 +11,14 @@
     "sysinfo": {
       "command": "python",
       "args": ["examples/mcp_sysinfo_server.py"]
+    },
+    "random": {
+      "command": "python",
+      "args": ["examples/mcp_random_server.py"]
+    },
+    "units": {
+      "command": "python",
+      "args": ["examples/mcp_units_server.py"]
     }
   }
 }
