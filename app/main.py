@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.routers import agents, mcp, swarm, web
+from app.api.routers import agents, mcp, swarm, ui, web
 from app.core.config import get_settings
 from app.llm import resolve_provider
 from app.mcp import mcp_manager
@@ -32,6 +32,7 @@ app.include_router(swarm.router)
 app.include_router(agents.router)
 app.include_router(web.router)
 app.include_router(mcp.router)
+app.include_router(ui.router)
 
 
 @app.get("/health", tags=["health"])
