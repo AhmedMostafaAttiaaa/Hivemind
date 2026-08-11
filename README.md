@@ -60,6 +60,25 @@ switches to `Searching the web…` / `Reading …` while it's online. In-chat co
 `/new`, `/reset`, `/web on|off|auto`, `/exit`.
 (Run it with the env's python or after `conda activate` — not `conda run`.)
 
+## Browser UI
+
+A minimal test console lives at **`/ui`** (also the redirect target for `/`) — no build step, one
+static page. It's driven by the same `/swarm/stream` SSE endpoint as `chat.py`:
+
+- **A status orb** shows what the swarm is doing right now: `thinking` (reasoning/idle),
+  `listening` (typing), `working` (a tool — web search, calculator, an MCP tool, ... — is
+  actively running). Any other state falls back to `thinking`.
+- **Controls** for provider (auto/groq/ollama), web tools (auto/on/off), and MCP tools
+  (auto/on/off), plus **new** (fresh conversation) and **reset** (clear this conversation's
+  server-side memory).
+- The session id and visible chat history persist in `localStorage`, so a page refresh doesn't
+  lose your conversation.
+
+```bash
+python -m uvicorn app.main:app --port 8000
+# open http://127.0.0.1:8000/  (or /ui directly)
+```
+
 ## SearXNG via Docker (optional, better search)
 
 ```bash
@@ -188,13 +207,14 @@ whether the web was enabled, and a log of every tool call the agents made.
 
 ```
 app/
-├── main.py               # FastAPI app, mounts all routers
-├── api/                  # HTTP layer: schemas + routers (swarm, agents, web)
+├── main.py               # FastAPI app, mounts all routers, redirects / -> /ui
+├── api/                  # HTTP layer: schemas + routers (swarm, agents, web, mcp, ui)
 ├── swarm/                # engine: Agent template, handoffs, SwarmEngine, session memory, SSE events
 ├── agents/               # role definitions + shared "Ahmed Attia's assistant" persona
 ├── llm/                  # BaseLLM + Ollama and Groq adapters (configurable temperature)
 ├── tools/                # web_search, fetch_page, calculator, datetime, text_stats, uuid
 ├── mcp/                  # MCP client: connect external MCP servers, expose their tools
+├── static/ui.html        # browser test console: chat + live status orb (see Browser UI above)
 └── core/                 # settings (.env), shared http client, file reader
 chat.py                   # interactive chat client with the live search loader
 docker-compose.yml        # SearXNG service
