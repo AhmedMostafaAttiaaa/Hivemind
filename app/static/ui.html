@@ -203,6 +203,10 @@
   const ORB_STATES = ["thinking", "listening", "working"];
   const orbEl = document.getElementById("orb");
   const orbLabelEl = document.getElementById("orb-label");
+  const chatLogEl = document.getElementById("chat-log");
+  const chatFormEl = document.getElementById("chat-form");
+  const inputEl = document.getElementById("chat-input");
+  const sendBtnEl = chatFormEl.querySelector("button");
 
   // Any state outside the known set falls back to "thinking" — this mirrors:
   //   orb_state = state if state in ("thinking", "listening", "working") else "thinking"
@@ -219,11 +223,109 @@
 
   setOrbState("thinking");
 
-  // Temporary wiring until the real backend events land in the next commit:
-  // typing counts as "listening", losing focus returns to the resting "thinking" state.
-  const inputEl = document.getElementById("chat-input");
-  inputEl.addEventListener("focus", () => setOrbState("listening"));
-  inputEl.addEventListener("blur", () => setOrbState("thinking"));
+  const sessionId = "ui-" + Math.random().toString(36).slice(2, 10);
+  let isStreaming = false;
+
+  // Typing counts as "listening" — but only when we're not mid-request, so a
+  // real backend state (thinking/working) is never overridden by a stray focus event.
+  inputEl.addEventListener("focus", () => { if (!isStreaming) setOrbState("listening"); });
+  inputEl.addEventListener("blur", () => { if (!isStreaming) setOrbState("thinking"); });
+
+  function appendMessage(role, text, trace) {
+    const el = document.createElement("div");
+    el.className = "msg " + role;
+    if (trace) {
+      const traceEl = document.createElement("span");
+      traceEl.className = "trace";
+      traceEl.textContent = trace;
+      el.appendChild(traceEl);
+    }
+    el.appendChild(document.createTextNode(text));
+    chatLogEl.appendChild(el);
+    chatLogEl.scrollTop = chatLogEl.scrollHeight;
+    return el;
+  }
+
+  function setFormDisabled(disabled) {
+    inputEl.disabled = disabled;
+    sendBtnEl.disabled = disabled;
+  }
+
+  async function sendMessage(task) {
+    appendMessage("user", task);
+    isStreaming = true;
+    setFormDisabled(true);
+    setOrbState("thinking");
+
+    const path = [];
+    const searched = new Set();
+
+    function handleEvent(ev) {
+      if (ev.type === "agent") {
+        path.push(ev.agent);
+        setOrbState("thinking");
+      } else if (ev.type === "handoff") {
+        setOrbState("thinking");
+      } else if (ev.type === "tool") {
+        if (ev.phase === "start") {
+          if (ev.tool === "web_search" || ev.tool === "fetch_page") searched.add(ev.tool);
+          setOrbState("working");
+        } else {
+          setOrbState("thinking");
+        }
+      } else if (ev.type === "final") {
+        const routeText = (ev.path && ev.path.length ? ev.path : path).join(" -> ");
+        const bits = [routeText || ev.final_agent];
+        if (searched.size) bits.push("searched: " + Array.from(searched).join(", "));
+        appendMessage("bot", ev.content || "", "(" + bits.join(" | ") + ")");
+      } else if (ev.type === "error") {
+        appendMessage("bot", "[error] " + ev.message);
+      }
+    }
+
+    try {
+      const resp = await fetch("/swarm/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task, session_id: sessionId }),
+      });
+      if (!resp.ok || !resp.body) {
+        appendMessage("bot", "[error " + resp.status + "] " + (await resp.text()));
+        return;
+      }
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let sep;
+        while ((sep = buffer.indexOf("\n\n")) >= 0) {
+          const rawEvent = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          const line = rawEvent.split("\n").find((l) => l.startsWith("data: "));
+          if (!line) continue;
+          handleEvent(JSON.parse(line.slice(6)));
+        }
+      }
+    } catch (err) {
+      appendMessage("bot", "[request failed] " + err);
+    } finally {
+      isStreaming = false;
+      setFormDisabled(false);
+      setOrbState("thinking");
+      inputEl.focus();
+    }
+  }
+
+  chatFormEl.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const task = inputEl.value.trim();
+    if (!task) return;
+    inputEl.value = "";
+    sendMessage(task);
+  });
 </script>
 </body>
 </html>
