@@ -41,6 +41,29 @@
     color: var(--muted);
     font-size: 13px;
   }
+  header .controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  header .controls select,
+  header .controls button {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12.5px;
+  }
+  header .controls button {
+    cursor: pointer;
+    color: var(--muted);
+  }
+  header .controls button:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
   main {
     flex: 1;
     display: flex;
@@ -183,6 +206,25 @@
   <header>
     <h1>Hivemind</h1>
     <p>Swarm agent test console</p>
+    <div class="controls">
+      <select id="provider-select" title="LLM provider">
+        <option value="">provider: auto</option>
+        <option value="groq">provider: groq</option>
+        <option value="ollama">provider: ollama</option>
+      </select>
+      <select id="web-select" title="Web search tools">
+        <option value="">web: auto</option>
+        <option value="true">web: on</option>
+        <option value="false">web: off</option>
+      </select>
+      <select id="mcp-select" title="MCP tools">
+        <option value="">mcp: auto</option>
+        <option value="true">mcp: on</option>
+        <option value="false">mcp: off</option>
+      </select>
+      <button id="new-btn" type="button" title="Start a fresh conversation">new</button>
+      <button id="reset-btn" type="button" title="Clear this conversation's memory">reset</button>
+    </div>
   </header>
 
   <main>
@@ -223,15 +265,51 @@
 
   setOrbState("thinking");
 
-  const sessionId = "ui-" + Math.random().toString(36).slice(2, 10);
+  const providerSelectEl = document.getElementById("provider-select");
+  const webSelectEl = document.getElementById("web-select");
+  const mcpSelectEl = document.getElementById("mcp-select");
+  const newBtnEl = document.getElementById("new-btn");
+  const resetBtnEl = document.getElementById("reset-btn");
+
+  const SESSION_KEY = "hivemind_session_id";
+  const transcriptKey = (id) => "hivemind_transcript_" + id;
+
+  function newSessionId() {
+    return "ui-" + Math.random().toString(36).slice(2, 10);
+  }
+
+  function loadTranscript(id) {
+    try {
+      return JSON.parse(localStorage.getItem(transcriptKey(id)) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function saveTranscriptEntry(id, entry) {
+    const t = loadTranscript(id);
+    t.push(entry);
+    localStorage.setItem(transcriptKey(id), JSON.stringify(t));
+  }
+
+  let sessionId = localStorage.getItem(SESSION_KEY);
+  if (!sessionId) {
+    sessionId = newSessionId();
+    localStorage.setItem(SESSION_KEY, sessionId);
+  }
   let isStreaming = false;
+
+  // "" (auto) maps to null so the backend falls back to its own default/detection.
+  function selectValue(el) {
+    return el.value === "" ? null : el.value === "true" ? true : el.value === "false" ? false : el.value;
+  }
 
   // Typing counts as "listening" — but only when we're not mid-request, so a
   // real backend state (thinking/working) is never overridden by a stray focus event.
   inputEl.addEventListener("focus", () => { if (!isStreaming) setOrbState("listening"); });
   inputEl.addEventListener("blur", () => { if (!isStreaming) setOrbState("thinking"); });
 
-  function appendMessage(role, text, trace) {
+  function appendMessage(role, text, trace, persist = true) {
     const el = document.createElement("div");
     el.className = "msg " + role;
     if (trace) {
@@ -243,7 +321,14 @@
     el.appendChild(document.createTextNode(text));
     chatLogEl.appendChild(el);
     chatLogEl.scrollTop = chatLogEl.scrollHeight;
+    if (persist) saveTranscriptEntry(sessionId, { role, text, trace: trace || null });
     return el;
+  }
+
+  // Restore this session's visible history (server-side memory already has it too;
+  // this just redraws what was on screen before a page refresh).
+  for (const entry of loadTranscript(sessionId)) {
+    appendMessage(entry.role, entry.text, entry.trace, false);
   }
 
   function setFormDisabled(disabled) {
@@ -284,10 +369,17 @@
     }
 
     try {
+      const payload = {
+        task,
+        session_id: sessionId,
+        provider: selectValue(providerSelectEl),
+        use_web: selectValue(webSelectEl),
+        use_mcp: selectValue(mcpSelectEl),
+      };
       const resp = await fetch("/swarm/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task, session_id: sessionId }),
+        body: JSON.stringify(payload),
       });
       if (!resp.ok || !resp.body) {
         appendMessage("bot", "[error " + resp.status + "] " + (await resp.text()));
@@ -325,6 +417,31 @@
     if (!task) return;
     inputEl.value = "";
     sendMessage(task);
+  });
+
+  function clearChatUi() {
+    chatLogEl.innerHTML = "";
+  }
+
+  newBtnEl.addEventListener("click", () => {
+    if (isStreaming) return;
+    sessionId = newSessionId();
+    localStorage.setItem(SESSION_KEY, sessionId);
+    clearChatUi();
+    setOrbState("thinking");
+    inputEl.focus();
+  });
+
+  resetBtnEl.addEventListener("click", async () => {
+    if (isStreaming) return;
+    try {
+      await fetch("/swarm/sessions/" + encodeURIComponent(sessionId), { method: "DELETE" });
+    } catch {
+      // best-effort: still clear the local view even if the network call fails
+    }
+    localStorage.removeItem(transcriptKey(sessionId));
+    clearChatUi();
+    setOrbState("thinking");
   });
 </script>
 </body>
