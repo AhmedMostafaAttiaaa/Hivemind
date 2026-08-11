@@ -4,6 +4,142 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Hivemind</title>
+<style>
+  :root {
+    --bg: #0b0e13;
+    --panel: #12161f;
+    --panel-2: #171c27;
+    --border: #232938;
+    --text: #e7ebf3;
+    --muted: #7d8797;
+    --accent: #5b9dff;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 20px 28px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  header p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px 20px 20px;
+    min-height: 0;
+  }
+  #orb-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 0 22px;
+  }
+  #orb {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #8fb8ff, var(--accent) 60%, #2c5ed6);
+  }
+  #orb-label {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  #chat-log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 16px;
+    min-height: 200px;
+  }
+  .msg {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    line-height: 1.5;
+    font-size: 14.5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #06101f;
+    border-bottom-right-radius: 4px;
+  }
+  .msg.bot {
+    align-self: flex-start;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .msg.bot .trace {
+    display: block;
+    color: var(--muted);
+    font-size: 11.5px;
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  #chat-form {
+    display: flex;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  #chat-input {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14.5px;
+    outline: none;
+  }
+  #chat-input:focus {
+    border-color: var(--accent);
+  }
+  #chat-form button {
+    background: var(--accent);
+    color: #06101f;
+    border: none;
+    border-radius: 10px;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #chat-form button:hover {
+    filter: brightness(1.08);
+  }
+</style>
 </head>
 <body>
   <header>
