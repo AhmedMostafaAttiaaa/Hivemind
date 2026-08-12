@@ -59,6 +59,21 @@ class OllamaLLM(BaseLLM):
             raise RuntimeError(
                 f"Cannot reach Ollama at {self.base_url}. Is `ollama serve` running?"
             ) from e
+        except httpx.HTTPStatusError as e:
+            body = e.response.text[:300]
+            if e.response.status_code == 404 and "not found" in body.lower():
+                raise RuntimeError(
+                    f"Ollama model {self.model!r} not found on {self.base_url}. "
+                    f"List what's actually available with: curl {self.base_url}/api/tags "
+                    "-- then set OLLAMA_MODEL (in .env, or as an env var before launching "
+                    "the server) to one of those names and restart. Note: env vars set with "
+                    "`set` only last for that one terminal session, so a fresh terminal can "
+                    "silently fall back to the OLLAMA_MODEL default."
+                ) from e
+            raise RuntimeError(
+                f"Ollama API error {e.response.status_code} at {self.base_url} "
+                f"(model={self.model!r}): {body}"
+            ) from e
 
         message = data.get("message", {})
         tool_calls = []

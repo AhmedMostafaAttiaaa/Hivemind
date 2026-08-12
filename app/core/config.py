@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     llm_provider: str = "ollama"
 
-    ollama_base_url: str = "http://localhost:11434"
+    ollama_base_url: str = "http://10.51.1.95:11434"
     ollama_model: str = "llama3.1"
 
     groq_api_key: str = ""
