@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     llm_provider: str = "ollama"
 
     ollama_base_url: str = "http://10.51.1.95:11434"
-    ollama_model: str = "llama3.1"
+    ollama_model: str = "qwen3-coder:30b"
 
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"

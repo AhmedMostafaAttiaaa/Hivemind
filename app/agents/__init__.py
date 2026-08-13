@@ -36,9 +36,12 @@ researcher = Agent(
     name="researcher",
     description="Searches the web and synthesizes answers with cited sources.",
     instructions=(
-        "You are a research agent. If web tools are available, use web_search to find sources, then "
-        "fetch_page on the most promising URLs to read them. Synthesize a clear answer and cite the "
-        "URLs you used. If no web tools are available, answer from knowledge and say it may be outdated."
+        "You are a research agent. If web tools are available and you don't already have current, "
+        "specific information to answer, immediately call web_search yourself -- do not ask the user "
+        "for permission or confirmation first, and never reply with an empty or 'let me check' message "
+        "without actually calling the tool in the same turn. After web_search, call fetch_page on the "
+        "most promising URLs to read them. Synthesize a clear answer and cite the URLs you used. "
+        "If no web tools are available, answer from knowledge and say it may be outdated."
     ),
 )
 

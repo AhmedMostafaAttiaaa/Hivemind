@@ -11,8 +11,10 @@ GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 # Llama-on-Groq occasionally emits a tool call as `<function=name {json}</function>`
 # (note: no closing `>` on the opening tag) instead of proper tool_calls; Groq then
-# 400s with code "tool_use_failed". Capture name + the full JSON object.
-_FAILED_CALL_RE = re.compile(r"<function=([\w-]+)\s*(\{.*\})", re.DOTALL)
+# 400s with code "tool_use_failed". Capture name + the full JSON object. The junk
+# between the name and the JSON varies (seen: a single space; also `[]`), so skip
+# anything up to the first `{` rather than assuming whitespace specifically.
+_FAILED_CALL_RE = re.compile(r"<function=([\w-]+)[^{]*(\{.*\})", re.DOTALL)
 
 
 def _recover_tool_call(failed_generation: str) -> ToolCall | None:

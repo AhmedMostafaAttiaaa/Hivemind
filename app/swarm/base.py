@@ -9,6 +9,13 @@ from app.tools.base import Tool
 
 HANDOFF_PREFIX = "handoff_to_"
 
+# Occasionally a model returns a fully degenerate response: no tool call AND no
+# text (observed on Groq/Llama, distinct from the malformed-tool-call cases each
+# provider client already repairs). There's nothing to parse or recover there --
+# but since this is sampled output, a plain retry with the same prompt often
+# succeeds. Bounded so a persistently broken model still terminates.
+MAX_EMPTY_RESPONSE_RETRIES = 2
+
 # Optional async callback used to stream progress events (agent start, handoff,
 # tool start/end) to a live client. None = no streaming.
 Emitter = Callable[[dict[str, Any]], Awaitable[None]]
@@ -93,7 +100,11 @@ class Agent:
         events: list[ToolEvent] = []
 
         for _ in range(settings.max_tool_iterations):
-            response = await llm.chat(convo, tools=tool_schemas or None)
+            for _retry in range(MAX_EMPTY_RESPONSE_RETRIES):
+                response = await llm.chat(convo, tools=tool_schemas or None)
+                if response.tool_calls or response.content.strip():
+                    break
+                # Degenerate: no tool call, no text -- retry before accepting a blank answer.
 
             if not response.tool_calls:
                 return AgentOutput(agent=self.name, content=response.content, tool_events=events)
